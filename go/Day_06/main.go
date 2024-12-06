@@ -15,6 +15,17 @@ func main() {
 	}
 	_ = input
 	Part1(input)
+	Part2([]byte(`....#.....
+.........#
+..........
+..#.......
+.......#..
+..........
+.#..^.....
+........#.
+#.........
+......#...
+`))
 }
 
 type Unit struct{}
@@ -38,7 +49,10 @@ func Part1(input []byte) {
 		s = ss
 	}
 
-	fmt.Printf("Part 1: %d", acc)
+	fmt.Printf("Part 1: %d\n", acc)
+}
+
+func Part2(input []byte) {
 }
 
 func Error(s string, e ...any) {
@@ -176,9 +190,45 @@ func (ms MapState) GetNextState() (MapState, bool) {
 		return ms, false
 	case OBSTACLE:
 		ms.dir = GetNextDir(ms.dir)
-		return ms.GetNextState()
+		return ms, false
 	default:
 		Error("Unanticipated byte encountered: %c", t)
 		return MapState{}, false
 	}
 }
+
+type Ray struct {
+	p1, p2, dir Point
+}
+
+func Clamp(min, max, i int) int {
+	if i > max {
+		return max
+	}
+	if i < min {
+		return min
+	}
+	return i
+}
+
+func NewRay(p1, p2 Point) Ray {
+	dx := Clamp(-1, 1, p1.x-p2.x)
+	dy := Clamp(-1, 1, p1.y-p2.y)
+	return Ray{p1: p1, p2: p2, dir: Point{dx, dy}}
+}
+
+// func (m *Map) GetGuardRoute() []Ray {
+// 	r := []Ray{}
+
+// 	ms := m.MapState(DirUp)
+
+// 	for {
+// 		start := ms.guard
+// 		for {
+// 			next, isEnd := ms.GetNextState()
+// 			if isEnd || next.dir !=
+
+// 		}
+
+// 	}
+// }
