@@ -20,10 +20,10 @@ func main() {
 		Error("Error reading input: %s", err)
 	}
 
-	Part1(input)
+	Part1And2(input)
 }
 
-func Part1(input []byte) {
+func Part1And2(input []byte) {
 	c := ParseCalibrations(input)
 	acc := int64(0)
 	for _, cc := range c {

@@ -15,17 +15,7 @@ func main() {
 	}
 	_ = input
 	Part1(input)
-	Part2([]byte(`....#.....
-.........#
-..........
-..#.......
-.......#..
-..........
-.#..^.....
-........#.
-#.........
-......#...
-`))
+	Part2(input)
 }
 
 type Unit struct{}
@@ -36,7 +26,7 @@ func Part1(input []byte) {
 	visited := map[Point]Unit{s.guard: {}}
 	acc := 1
 	for {
-		ss, isEnd := s.GetNextState()
+		ss, isEnd := s.GetNextState(m)
 		if isEnd {
 			break
 		}
@@ -53,6 +43,35 @@ func Part1(input []byte) {
 }
 
 func Part2(input []byte) {
+	m := NewMap(input)
+	ms := m.MapState(DirUp)
+	acc := 0
+	for _, p := range ms.GetGuardPath(m) {
+		if p == ms.guard {
+			continue
+		}
+
+		mm := NewMap(input)
+		mm.SetByte(p, OBSTACLE)
+		ms := mm.MapState(DirUp)
+		states := map[MapState]struct{}{ms: {}}
+		cur := ms
+
+		for {
+			next, isEnd := cur.GetNextState(mm)
+			if isEnd {
+				break
+			}
+			if _, ok := states[next]; ok {
+				acc++
+				break
+			}
+			cur = next
+			states[cur] = struct{}{}
+		}
+	}
+
+	fmt.Printf("Part 2: %d\n", acc)
 }
 
 func Error(s string, e ...any) {
@@ -117,9 +136,16 @@ func (m *Map) GetByte(p Point) byte {
 	return m.input[p.y*m.width+p.x]
 }
 
-func (m Map) Replace(p Point, pp Point) *Map {
-	m.input[p.y*m.width+p.x], m.input[pp.y*m.width+pp.x] = m.input[pp.y*m.width+pp.x], m.input[p.y*m.width+p.x]
-	return &m
+func (m *Map) SetByte(p Point, b byte) {
+	if p.x < 0 || p.x >= m.width {
+		Error("Value x was out of bounds for map: %d\n", p.x)
+	}
+
+	if p.y < 0 || p.y >= m.height {
+		Error("Value x was out of bounds for map: %d\n", p.x)
+	}
+
+	m.input[p.y*m.width+p.x] = b
 }
 
 const (
@@ -147,14 +173,12 @@ var (
 )
 
 type MapState struct {
-	m     Map
 	guard Point
 	dir   Point
 }
 
 func (m *Map) MapState(dir Point) MapState {
 	return MapState{
-		m:     *m,
 		guard: m.GetGuardPoint(),
 		dir:   dir,
 	}
@@ -176,59 +200,42 @@ func GetNextDir(dir Point) Point {
 	}
 }
 
-func (ms MapState) GetNextState() (MapState, bool) {
+func (ms MapState) GetNextState(m *Map) (MapState, bool) {
 	t := ms.guard.Translate(ms.dir)
 
-	if ms.m.IsOutOfBounds(t) {
+	if m.IsOutOfBounds(t) {
 		return MapState{}, true
 	}
 
-	switch ms.m.GetByte(t) {
-	case EMPTY:
-		ms.m = *ms.m.Replace(ms.guard, t)
+	switch m.GetByte(t) {
+	case EMPTY, GUARD:
 		ms.guard = t
 		return ms, false
 	case OBSTACLE:
 		ms.dir = GetNextDir(ms.dir)
 		return ms, false
+		// return ms.GetNextState(m)
 	default:
-		Error("Unanticipated byte encountered: %c", t)
+		Error("Unanticipated byte encountered: %c at %s", m.GetByte(t), t)
 		return MapState{}, false
 	}
 }
 
-type Ray struct {
-	p1, p2, dir Point
-}
+func (ms MapState) GetGuardPath(m *Map) []Point {
+	points := map[Point]struct{}{}
 
-func Clamp(min, max, i int) int {
-	if i > max {
-		return max
+	for {
+		next, end := ms.GetNextState(m)
+		if end {
+			break
+		}
+		points[next.guard] = struct{}{}
+		ms = next
 	}
-	if i < min {
-		return min
+
+	parr := []Point{}
+	for p := range points {
+		parr = append(parr, p)
 	}
-	return i
+	return parr
 }
-
-func NewRay(p1, p2 Point) Ray {
-	dx := Clamp(-1, 1, p1.x-p2.x)
-	dy := Clamp(-1, 1, p1.y-p2.y)
-	return Ray{p1: p1, p2: p2, dir: Point{dx, dy}}
-}
-
-// func (m *Map) GetGuardRoute() []Ray {
-// 	r := []Ray{}
-
-// 	ms := m.MapState(DirUp)
-
-// 	for {
-// 		start := ms.guard
-// 		for {
-// 			next, isEnd := ms.GetNextState()
-// 			if isEnd || next.dir !=
-
-// 		}
-
-// 	}
-// }
