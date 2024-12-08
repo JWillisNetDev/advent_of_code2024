@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/JWillisNetDev/advent_of_code2024/go/pkg/input"
+	"github.com/jwillisnetdev/advent_of_code2024/go/pkg/input"
 	"github.com/urfave/cli/v3"
 )
 

@@ -1,4 +1,4 @@
-module jwillis/aoc
+module github.com/jwillisnetdev/advent_of_code2024/go
 
 go 1.23.4
 
