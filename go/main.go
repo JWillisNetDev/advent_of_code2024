@@ -22,6 +22,7 @@ func main() {
 				Usage:   "Run a specific day, or run all days.",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
 					if cmd.Args().Len() == 0 {
+						fmt.Println("Running all days...")
 						return runAllDays()
 					}
 					if cmd.Args().Len() == 1 {
@@ -38,12 +39,12 @@ func main() {
 	}
 
 	if err := cmd.Run(context.Background(), os.Args); err != nil {
-		input.Error(err)
+		input.Error(err.Error())
 	}
 }
 
 func runDay(day int) error {
-	fp := fmt.Sprintf("2024/Day_%d/main.go")
+	fp := fmt.Sprintf("2024/Day_%02d/main.go", day)
 
 	fname := filepath.Base(fp)
 	fargs := []string{"run", fname, "input.txt"}
@@ -56,21 +57,25 @@ func runDay(day int) error {
 	if stderr != nil {
 		return errors.New(stderr.Error())
 	}
+
+	return nil
 }
 
 func runAllDays() error {
 	files, _ := filepath.Glob("2024/Day_*/main.go")
 	for _, fp := range files {
-		var dayNum int
-		n, _ := fmt.Sscanf(fp, "2024/Day_%d/main.go", &dayNum)
-		if n < 1 || n > 1 {
-			return errors.New(fmt.Sprintf("Failed to parse out number for a day filepath: %s", fp))
+		fname := filepath.Base(fp)
+		fargs := []string{"run", fname, "input.txt"}
+		cmd := exec.Command("go", fargs...)
+		cmd.Dir = filepath.Dir(fp)
+		stdout, stderr := cmd.CombinedOutput()
+		if len(stdout) > 0 {
+			fmt.Printf("%v\n", string(stdout))
 		}
-
-		for {
-			if err := runDay(dayNum); err != nil {
-				return err
-			}
+		if stderr != nil {
+			return errors.New(stderr.Error())
 		}
 	}
+
+	return nil
 }

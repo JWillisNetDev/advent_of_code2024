@@ -119,19 +119,6 @@ func Part2(input []byte) {
 		}
 	}
 
-	for y := 0; y < m.h; y++ {
-		for x := 0; x < m.w; x++ {
-			v := Vec2{x, y}
-			if _, ok := antinodes[v]; !ok {
-				b, _ := m.GetByte(v)
-				fmt.Printf("%c", b)
-			} else {
-				fmt.Printf("#")
-			}
-		}
-		fmt.Println()
-	}
-
 	fmt.Printf("Part 2: %d", acc)
 }
 
